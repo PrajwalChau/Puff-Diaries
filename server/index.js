@@ -15,7 +15,8 @@ app.use(cors({
     if (!origin) return callback(null, true)
     
     const isLocalhost = /^http:\/\/localhost:\d+$/.test(origin)
-    if (isLocalhost || allowedOrigins.includes(origin)) {
+    const isVercel = /\.vercel\.app$/.test(origin)
+    if (isLocalhost || isVercel || allowedOrigins.includes(origin)) {
       callback(null, true)
     } else {
       callback(new Error('Not allowed by CORS'))
