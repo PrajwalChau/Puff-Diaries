@@ -18,10 +18,44 @@ router.get('/:id', async (req, res) => {
   res.json(product)
 })
 
-router.post('/', auth, async (req, res) => {
+const multer = require('multer')
+const supabase = require('../config/supabase')
+const upload = multer({ storage: multer.memoryStorage() })
+
+router.post('/', auth, upload.single('image'), async (req, res) => {
   if (!req.user.isAdmin) return res.status(403).json({ message: 'Admins only' })
-  const product = await Product.create(req.body)
-  res.json(product)
+  
+  try {
+    let imageUrl = req.body.image || ''
+    
+    // If a file is uploaded, upload to Supabase storage
+    if (req.file) {
+      const fileExt = req.file.originalname.split('.').pop()
+      const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}.${fileExt}`
+      
+      const { data, error } = await supabase.storage
+        .from('products')
+        .upload(fileName, req.file.buffer, {
+          contentType: req.file.mimetype,
+          upsert: false
+        })
+        
+      if (error) {
+        console.error('Supabase upload error:', error)
+        return res.status(500).json({ message: 'Error uploading image to storage', error: error.message })
+      }
+      
+      const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName)
+      imageUrl = publicUrlData.publicUrl
+    }
+    
+    const productData = { ...req.body, image: imageUrl }
+    const product = await Product.create(productData)
+    res.json(product)
+  } catch (error) {
+    console.error('Product creation error:', error)
+    res.status(500).json({ message: 'Error creating product', error: error.message })
+  }
 })
 
 router.put('/:id', auth, async (req, res) => {

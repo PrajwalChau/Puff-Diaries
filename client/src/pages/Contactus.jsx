@@ -1,23 +1,9 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
-import { Footer } from './Home'
 
 export default function ContactUs() {
   const [form, setForm] = useState({ name: '', contact: '', subject: '', message: '' })
   const [sent, setSent] = useState(false)
-
-  const inp = {
-    width: '100%',
-    padding: '9px 12px',
-    background: '#fff',
-    border: '1px solid var(--border)',
-    borderRadius: '4px',
-    fontSize: '0.8rem',
-    color: 'var(--ink)',
-    outline: 'none',
-    fontFamily: 'var(--sans)',
-    transition: 'border-color 0.15s',
-  }
 
   const handleSubmit = e => {
     e.preventDefault()
@@ -28,144 +14,162 @@ export default function ContactUs() {
   }
 
   const CONTACTS = [
-    { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--red)"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>, label: 'Email', val: 'puffdiaries9@gmail.com', href: 'mailto:puffdiaries9@gmail.com' },
-    { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--red)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>, label: 'Phone / WhatsApp', val: '+977 9842195574', href: 'tel:+9779842195574' },
-    { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--red)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>, label: 'Phone / WhatsApp 2', val: '+977 9824847086', href: 'tel:+9779824847086' },
-    { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--red)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>, label: 'Location', val: 'Dhangadhi, Nepal', href: null },
-    { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--red)"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>, label: 'Instagram', val: '@puffdiaries_9', href: 'https://instagram.com/puffdiaries_9' },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.5">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+        </svg>
+      ),
+      label: 'Call / WhatsApp',
+      val: '+977 9842195574',
+      href: 'tel:+9779842195574'
+    },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.5">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+          <polyline points="22,6 12,13 2,6" />
+        </svg>
+      ),
+      label: 'Email Support',
+      val: 'puffdiaries9@gmail.com',
+      href: 'mailto:puffdiaries9@gmail.com'
+    },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.5">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+        </svg>
+      ),
+      label: 'Instagram DM',
+      val: '@puffdiaries_9',
+      href: 'https://instagram.com/puffdiaries_9'
+    }
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg-app)' }}>
       <Navbar />
 
-      {/* Hero */}
-      <section style={{ position: 'relative', padding: '60px 48px', background: 'linear-gradient(135deg, #0f3460 0%, #111827 60%, #0d1117 100%)', textAlign: 'center' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,14,22,0.82)' }} />
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.2em', color: 'var(--red)', textTransform: 'uppercase', marginBottom: '9px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '18px', height: '1px', background: 'var(--red)' }} />
-            Reach out
-            <span style={{ width: '18px', height: '1px', background: 'var(--red)' }} />
-          </div>
-          <div style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(22px, 3vw, 30px)', fontWeight: 700, color: '#fff', marginBottom: '7px' }}>
-            Get in <em style={{ fontStyle: 'italic', color: '#f9a8ac' }}>touch.</em>
-          </div>
-          <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.48)', lineHeight: 1.7, maxWidth: '380px' }}>
-            Questions, wholesale inquiries, feedback — we're a small team and we actually read every message.
+      <div style={{ flex: 1, padding: '20px 16px', overflowY: 'auto', paddingBottom: '30px' }}>
+        
+        {/* Story Intro */}
+        <div style={{ marginBottom: '24px' }}>
+          <span style={{
+            fontSize: '0.65rem', fontWeight: '750', letterSpacing: '0.12em',
+            textTransform: 'uppercase', color: 'var(--primary)',
+            background: 'var(--primary-light)', padding: '4px 10px', borderRadius: '12px'
+          }}>
+            Support Channels
+          </span>
+          <h1 style={{ fontSize: '1.45rem', fontWeight: '800', color: 'var(--dark)', marginTop: '12px', lineHeight: '1.25' }}>
+            Get in touch with <span style={{ color: 'var(--primary)' }}>our team</span>
+          </h1>
+          <p style={{ fontSize: '0.82rem', color: 'var(--mid)', marginTop: '8px', lineHeight: '1.5' }}>
+            Questions, wholesale pricing requests, or delivery adjustments? We read every DM and message.
           </p>
         </div>
-      </section>
 
-      {/* Body */}
-      <section style={{ padding: '56px 40px', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '100%', maxWidth: '860px', display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '20px' }}>
-
-          {/* Contact info */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-            {CONTACTS.map((c, i) => (
-              <div key={i}
-                style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '8px', padding: '13px 15px', display: 'flex', alignItems: 'center', gap: '11px', cursor: c.href ? 'pointer' : 'default', transition: 'border-color 0.18s' }}
-                onMouseEnter={e => { if (c.href) e.currentTarget.style.borderColor = 'var(--red)' }}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                onClick={() => c.href && window.open(c.href)}
-              >
-                <div style={{ width: '34px', height: '34px', borderRadius: '6px', background: '#fde8e9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {c.icon}
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#bbb', marginBottom: '2px' }}>{c.label}</div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink)' }}>{c.val}</div>
-                </div>
+        {/* Quick Contacts grid (stacked list) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '28px' }}>
+          {CONTACTS.map((c, i) => (
+            <div
+              key={i}
+              onClick={() => c.href && window.open(c.href)}
+              style={{
+                background: 'var(--white)', border: '1.5px solid var(--border)',
+                borderRadius: '20px', padding: '12px 16px', display: 'flex',
+                alignItems: 'center', gap: '14px', cursor: c.href ? 'pointer' : 'default',
+                boxShadow: 'var(--shadow-sm)', transition: 'all 0.15s ease'
+              }}
+            >
+              <div style={{
+                width: '38px', height: '38px', borderRadius: '10px',
+                background: 'var(--primary-light)', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', flexShrink: 0
+              }}>
+                {c.icon}
               </div>
-            ))}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '0.62rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--light)', letterSpacing: '0.04em' }}>{c.label}</div>
+                <div style={{ fontSize: '0.82rem', fontWeight: '700', color: 'var(--dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.val}</div>
+              </div>
+              {c.href && (
+                <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>→</span>
+              )}
+            </div>
+          ))}
+        </div>
 
-            {/* Wholesale box */}
-            <div style={{ background: 'var(--navy)', borderRadius: '8px', padding: '16px' }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#fff', marginBottom: '4px' }}>Wholesale inquiries</div>
-              <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.42)', lineHeight: 1.65, marginBottom: '10px' }}>
-                Running a shop? Email us your quantity and we'll send pricing. Tiered discounts on all products.
+        {/* Message form */}
+        <div style={{
+          background: 'var(--white)', borderRadius: '24px', padding: '16px',
+          boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)',
+          marginBottom: '20px'
+        }}>
+          <h3 style={{ fontSize: '0.85rem', fontWeight: '750', color: 'var(--dark)', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+            Send Us a Message
+          </h3>
+
+          {sent ? (
+            <div style={{
+              background: '#EBF7F2', border: '1px solid #86efac', borderRadius: '16px',
+              padding: '20px 10px', textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>✓</div>
+              <h4 style={{ fontSize: '0.82rem', fontWeight: '700', color: '#388E3C' }}>Email Client Triggered</h4>
+              <p style={{ fontSize: '0.72rem', color: '#1B5E20', marginTop: '2px', lineHeight: '1.4' }}>
+                Your device email client has been loaded with the draft. We'll reply soon!
               </p>
-              <button
-                onClick={() => window.open('mailto:puffdiaries9@gmail.com?subject=Wholesale Inquiry')}
-                style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', background: 'var(--red)', color: '#fff', border: 'none', borderRadius: '3px', padding: '7px 14px', cursor: 'pointer', transition: 'background 0.18s' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--red-dark)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'var(--red)'}
-              >
-                Get wholesale pricing →
-              </button>
             </div>
-          </div>
-
-          {/* Form */}
-          <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '10px', padding: '22px' }}>
-            <div style={{ fontFamily: 'var(--serif)', fontSize: '0.95rem', fontWeight: 700, color: 'var(--ink)', marginBottom: '14px' }}>
-              Send us a message
-            </div>
-
-            {sent ? (
-              <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '28px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.4rem', marginBottom: '8px' }}>✓</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#15803d', marginBottom: '4px' }}>Message sent!</div>
-                <div style={{ fontSize: '0.75rem', color: '#166534' }}>Your email client should have opened. We'll get back to you soon.</div>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '9px' }}>
-                  <input
-                    style={{ ...inp }}
-                    placeholder="Your name"
-                    value={form.name}
-                    onChange={e => setForm({ ...form, name: e.target.value })}
-                    onFocus={e => e.target.style.borderColor = 'var(--ink)'}
-                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                    required
-                  />
-                  <input
-                    style={{ ...inp }}
-                    placeholder="Email or phone"
-                    value={form.contact}
-                    onChange={e => setForm({ ...form, contact: e.target.value })}
-                    onFocus={e => e.target.style.borderColor = 'var(--ink)'}
-                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                    required
-                  />
-                </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label>Your Name</label>
                 <input
-                  style={{ ...inp }}
-                  placeholder="Subject (e.g. Wholesale, Order issue)"
-                  value={form.subject}
-                  onChange={e => setForm({ ...form, subject: e.target.value })}
-                  onFocus={e => e.target.style.borderColor = 'var(--ink)'}
-                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                />
-                <textarea
-                  style={{ ...inp, minHeight: '90px', resize: 'vertical' }}
-                  placeholder="Your message..."
-                  value={form.message}
-                  onChange={e => setForm({ ...form, message: e.target.value })}
-                  onFocus={e => e.target.style.borderColor = 'var(--ink)'}
-                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                  className="input-field" type="text" placeholder="e.g. Prajwal Shrestha"
+                  value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
                   required
                 />
-                <button
-                  type="submit"
-                  style={{ fontFamily: 'var(--sans)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', background: 'var(--red)', color: '#fff', border: 'none', borderRadius: '4px', padding: '11px', cursor: 'pointer', transition: 'background 0.18s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--red-dark)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'var(--red)'}
-                >
-                  Send message →
-                </button>
-                <p style={{ fontSize: '0.62rem', color: '#aaa', textAlign: 'center' }}>
-                  Opens your email client · or email puffdiaries9@gmail.com directly
-                </p>
-              </form>
-            )}
-          </div>
-        </div>
-      </section>
+              </div>
 
-      <Footer />
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label>Email or Phone</label>
+                <input
+                  className="input-field" type="text" placeholder="e.g. 9842195574"
+                  value={form.contact} onChange={e => setForm({ ...form, contact: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label>Subject</label>
+                <input
+                  className="input-field" type="text" placeholder="e.g. Wholesale inquiry, order issue"
+                  value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}
+                />
+              </div>
+
+              <div className="input-group" style={{ marginBottom: '10px' }}>
+                <label>Message Detail</label>
+                <textarea
+                  className="input-field" rows="4" placeholder="Enter message contents..."
+                  value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
+                  required
+                  style={{ resize: 'none' }}
+                />
+              </div>
+
+              <button type="submit" className="primary-btn" style={{ height: '44px' }}>
+                Send Message
+              </button>
+            </form>
+          )}
+        </div>
+
+      </div>
     </div>
   )
 }

@@ -11,7 +11,9 @@ router.post('/signup', async (req, res) => {
     const exists = await User.findOne({ $or: [{ email }, { phone }] })
     if (exists) return res.status(400).json({ message: 'Account already exists' })
     const hashed = await bcrypt.hash(password, 10)
-    const user = await User.create({ name, email, phone, password: hashed })
+    const adminEmail = process.env.ADMIN_EMAIL || ''
+    const isAdmin = email && adminEmail && email.toLowerCase() === adminEmail.toLowerCase()
+    const user = await User.create({ name, email, phone, password: hashed, isAdmin })
     const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '30d' })
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, phone: user.phone, isAdmin: user.isAdmin } })
   } catch (err) {

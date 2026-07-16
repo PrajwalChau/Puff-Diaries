@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../App'
+import { getFlavorStyle } from './Home'
 import API_BASE from '../api'
 
 export default function OrderForm() {
@@ -18,8 +19,10 @@ export default function OrderForm() {
   const [qrOpen, setQrOpen] = useState(false)
 
   useEffect(() => {
-    axios.get(`${API_BASE}/api/products/${productId}`).then(res => setProduct(res.data))
-  }, [productId])
+    axios.get(`${API_BASE}/api/products/${productId}`)
+      .then(res => setProduct(res.data))
+      .catch(() => navigate('/products'))
+  }, [productId, navigate])
 
   const handleFile = (e) => {
     const file = e.target.files[0]
@@ -28,157 +31,402 @@ export default function OrderForm() {
   }
 
   const handleSubmit = async () => {
-    if (!form.customerName || !form.phone || !form.address || !screenshot) {
-      alert('Please fill all fields and upload your payment screenshot')
+    if (!form.customerName || !form.phone || !form.address) {
+      alert('Please fill out all billing & delivery details')
+      return
+    }
+    if (!screenshot) {
+      alert('Please upload your payment screenshot to verify transaction')
       return
     }
     setLoading(true)
-    const data = new FormData()
-    Object.entries(form).forEach(([k, v]) => data.append(k, v))
-    data.append('product', productId)
-    data.append('screenshot', screenshot)
-    await axios.post(`${API_BASE}/api/orders`, data, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    setSubmitted(true)
+    try {
+      const data = new FormData()
+      Object.entries(form).forEach(([k, v]) => data.append(k, v))
+      data.append('product', productId)
+      data.append('screenshot', screenshot)
+      
+      await axios.post(`${API_BASE}/api/orders`, data, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setSubmitted(true)
+    } catch (error) {
+      const backendError = error.response?.data?.error || error.response?.data?.message || 'Failed to place order'
+      alert('Error: ' + backendError)
+    }
     setLoading(false)
   }
 
-  const inp = { width: '100%', padding: '14px 18px', background: 'var(--soft)', border: '1.5px solid var(--border)', borderRadius: '10px', color: 'var(--ink)', fontSize: '0.88rem', outline: 'none' }
-
   if (submitted) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--white)' }}>
       <Navbar />
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '20px', padding: '80px 40px' }}>
-        <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--soft)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem' }}>✓</div>
-        <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.8rem', fontWeight: 200, color: 'var(--ink)' }}>Order received</h2>
-        <p style={{ color: 'var(--mid)', fontSize: '0.88rem', textAlign: 'center', maxWidth: '320px', lineHeight: 1.7 }}>We'll verify your payment and reach out soon.</p>
-        <button className="btn btn-navy" onClick={() => navigate('/')}>Back to shop</button>
+      <div style={{
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexDirection: 'column', gap: '20px', padding: '40px 16px', textAlign: 'center'
+      }}>
+        <div style={{
+          width: '72px', height: '72px', borderRadius: '50%',
+          background: '#EBF7F2', color: '#4CAF50',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: 'var(--shadow-sm)'
+        }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <div>
+          <h2 style={{ fontSize: '1.45rem', fontWeight: '800', color: 'var(--dark)' }}>Order Received!</h2>
+          <p style={{ fontSize: '0.82rem', color: 'var(--mid)', marginTop: '8px', lineHeight: '1.5', maxWidth: '280px' }}>
+            We are verifying your transfer. We will dispatch your package shortly.
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', maxWidth: '240px', marginTop: '10px' }}>
+          <button onClick={() => navigate('/account')} className="primary-btn">
+            Track Orders
+          </button>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: 'none', border: '1.5px solid var(--border)', borderRadius: '16px',
+              padding: '12px', fontSize: '0.85rem', fontWeight: '600', color: 'var(--dark)',
+              cursor: 'pointer'
+            }}
+          >
+            Back to Shop
+          </button>
+        </div>
       </div>
     </div>
   )
 
-  if (!product) return <div style={{ minHeight: '100vh' }}><Navbar /></div>
+  if (!product) return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--white)' }}>
+      <Navbar />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontSize: '0.85rem', color: 'var(--light)', fontStyle: 'italic' }}>Loading checkout details...</div>
+      </div>
+    </div>
+  )
+
+  const productStyle = getFlavorStyle(product.flavour)
+  const deliveryFee = product.price >= 3000 ? 0 : 150
+  const grandTotal = product.price + deliveryFee
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg-app)', position: 'relative' }}>
       <Navbar />
 
-      {/* QR Popup Modal */}
+      <style>{`
+        .checkout-layout {
+          display: flex;
+          flex-direction: column;
+        }
+        .checkout-main-col {
+          width: 100%;
+        }
+        .checkout-side-col {
+          display: none;
+        }
+        .mobile-order-block {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .desktop-order-block {
+          display: none;
+        }
+        .order-floating-bar {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-top: 1.5px solid var(--border);
+          padding: 12px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          z-index: 10;
+        }
+        .order-screen-padding {
+          padding-bottom: 110px;
+        }
+        @media (min-width: 769px) {
+          .checkout-layout {
+            flex-direction: row !important;
+            gap: 28px;
+            align-items: flex-start;
+            margin-top: 10px;
+          }
+          .checkout-main-col {
+            width: 58% !important;
+            flex-shrink: 0;
+          }
+          .checkout-side-col {
+            display: flex !important;
+            flex-direction: column;
+            gap: 16px;
+            width: 42% !important;
+            flex: 1;
+            position: sticky;
+            top: 90px;
+          }
+          .desktop-order-block {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+          .mobile-order-block {
+            display: none !important;
+          }
+          .order-floating-bar {
+            display: none !important;
+          }
+          .order-screen-padding {
+            padding-bottom: 30px !important;
+          }
+        }
+      `}</style>
+
+      {/* QR Code Magnifier Overlay */}
       {qrOpen && (
         <div
           onClick={() => setQrOpen(false)}
           style={{
-            position: 'fixed', inset: 0, zIndex: 9999,
-            background: 'rgba(0,0,0,0.72)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backdropFilter: 'blur(4px)',
-            animation: 'fadeIn 0.18s ease',
+            position: 'absolute', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.65)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', padding: '20px',
+            animation: 'fadeIn 0.2s ease'
           }}
         >
-          <style>{`@keyframes fadeIn { from { opacity:0; } to { opacity:1; } } @keyframes popIn { from { opacity:0; transform:scale(0.88); } to { opacity:1; transform:scale(1); } }`}</style>
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: '#fff',
-              borderRadius: '16px',
-              padding: '28px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '14px',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.32)',
-              animation: 'popIn 0.2s ease',
-              maxWidth: '340px',
-              width: '90%',
+              background: 'var(--white)', borderRadius: '24px', padding: '20px',
+              maxWidth: '320px', width: '100%', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: '14px', boxShadow: 'var(--shadow-lg)'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <div>
-                <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--light)' }}>Scan &amp; Pay</div>
-                <div style={{ fontFamily: 'var(--serif)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--ink)' }}>Rs. {product.price}</div>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: '800' }}>Grand Total: Rs. {grandTotal.toLocaleString()}</span>
               <button
                 onClick={() => setQrOpen(false)}
-                style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid var(--border)', background: 'var(--soft)', cursor: 'pointer', fontSize: '1rem', color: 'var(--light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-              >×</button>
+                style={{
+                  width: '28px', height: '28px', borderRadius: '50%', border: 'none',
+                  background: '#F0F1F5', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
             </div>
             <img
               src="/qr.png"
-              alt="Payment QR Code"
-              style={{ width: '260px', height: '260px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--border)' }}
+              alt="Payment QR"
+              style={{ width: '220px', height: '220px', objectFit: 'contain', borderRadius: '14px', border: '1.5px solid var(--border)' }}
             />
-            <div style={{ fontSize: '0.68rem', color: 'var(--light)', textAlign: 'center', lineHeight: 1.6 }}>
-              eSewa · Khalti · Bank Transfer<br />
-              <span style={{ color: 'var(--red)', fontWeight: 600 }}>Upload your screenshot below after paying</span>
-            </div>
+            <p style={{ fontSize: '0.72rem', color: 'var(--mid)', textAlign: 'center', lineHeight: '1.4' }}>
+              Scan with eSewa, Khalti, or Mobile Banking app to complete Rs. {grandTotal.toLocaleString()} payment.
+            </p>
           </div>
         </div>
       )}
 
-      <div style={{ maxWidth: '560px', margin: '0 auto', padding: '52px 24px 80px' }}>
-        <div style={{ background: 'var(--soft)', borderRadius: '14px', padding: '22px 28px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border)' }}>
-          <div>
-            <div style={{ fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--light)', marginBottom: '5px' }}>Your order</div>
-            <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '1.05rem', color: 'var(--ink)' }}>{product.name}</div>
-          </div>
-          <div style={{ fontFamily: 'var(--serif)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--navy)' }}>Rs. {product.price}</div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
-          <div style={{ fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--light)', fontWeight: 500 }}>Your details</div>
-          <input style={inp} placeholder="Full name" value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} />
-          <input style={inp} placeholder="Phone number" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
-          <input style={inp} placeholder="Delivery address" value={form.address} onChange={e => setForm({...form, address: e.target.value})} />
-        </div>
-
-        {/* QR Payment Section */}
-        <div style={{ background: 'var(--soft)', border: '1px solid var(--border)', borderRadius: '14px', padding: '28px', textAlign: 'center', marginBottom: '22px' }}>
-          <div style={{ fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--light)', marginBottom: '14px', fontWeight: 500 }}>Scan &amp; pay</div>
-
-          {/* Clickable QR */}
-          <div
-            onClick={() => setQrOpen(true)}
-            title="Click to enlarge"
-            style={{
-              width: '180px', height: '180px',
-              margin: '0 auto 14px',
-              cursor: 'pointer',
-              borderRadius: '10px',
-              overflow: 'hidden',
-              border: '2px solid var(--border)',
-              transition: 'border-color 0.18s, transform 0.18s',
-              position: 'relative',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--red)'; e.currentTarget.style.transform = 'scale(1.03)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'scale(1)' }}
-          >
-            <img src="/qr.png" alt="Payment QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          </div>
-
-          <div style={{ fontFamily: 'var(--serif)', fontSize: '1.1rem', color: 'var(--navy)', fontWeight: 600, marginBottom: '4px' }}>Rs. {product.price}</div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--light)', marginBottom: '10px' }}>eSewa · Khalti · Bank transfer</div>
+      {/* Main scrolling viewport centered in app-container */}
+      <div className="app-container order-screen-padding" style={{ padding: '20px 16px', flex: 1 }}>
+        
+        {/* Back Link */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
           <button
-            onClick={() => setQrOpen(true)}
-            style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', background: 'transparent', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: '4px', padding: '6px 14px', cursor: 'pointer' }}
+            onClick={() => navigate(-1)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', color: 'var(--dark)', padding: '4px'
+            }}
           >
-            Enlarge QR ↗
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+            </svg>
           </button>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--dark)' }}>Checkout Order</h1>
         </div>
 
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--light)', marginBottom: '10px', fontWeight: 500 }}>Upload payment screenshot</div>
-          <label style={{ display: 'block', background: 'var(--soft)', border: `1.5px dashed ${preview ? 'var(--navy)' : 'var(--border)'}`, borderRadius: '12px', padding: '28px', textAlign: 'center', cursor: 'pointer' }}>
-            <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
-            {preview ? <img src={preview} alt="preview" style={{ maxHeight: '160px', borderRadius: '8px', objectFit: 'contain' }} />
-              : <><div style={{ fontSize: '1.4rem', marginBottom: '6px', color: 'var(--mid)' }}>↑</div><div style={{ fontSize: '0.8rem', color: 'var(--mid)' }}>Click to upload screenshot</div></>}
-          </label>
+        {/* Item Preview Card */}
+        <div style={{
+          background: 'var(--white)', borderRadius: '20px', padding: '12px',
+          display: 'flex', gap: '12px', alignItems: 'center',
+          boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)',
+          marginBottom: '20px'
+        }}>
+          <div style={{
+            width: '56px', height: '56px', borderRadius: '12px',
+            background: productStyle.bg, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', flexShrink: 0, overflow: 'hidden'
+          }}>
+            {product.image ? (
+              <img src={product.image} alt="" style={{ width: '90%', height: '90%', objectFit: 'contain' }} />
+            ) : (
+              <span style={{ fontSize: '1.25rem' }}>💨</span>
+            )}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3 style={{
+              fontSize: '0.85rem', fontWeight: '750', color: 'var(--dark)',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+            }}>
+              {product.name}
+            </h3>
+            <span style={{ fontSize: '0.65rem', color: productStyle.text, fontWeight: '700', background: productStyle.bg, padding: '1px 8px', borderRadius: '8px', marginTop: '3px', display: 'inline-block' }}>
+              {product.flavour || 'Original'}
+            </span>
+          </div>
+          <div style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--dark)', flexShrink: 0 }}>
+            Rs. {product.price.toLocaleString()}
+          </div>
         </div>
 
-        <button onClick={handleSubmit} disabled={loading} className="btn btn-navy" style={{ width: '100%', justifyContent: 'center', padding: '16px', opacity: loading ? 0.7 : 1 }}>
-          {loading ? 'Submitting...' : 'Place order'}
+        {/* Layout split */}
+        <div className="checkout-layout">
+          
+          {/* LEFT COLUMN: SHIPPING FORM */}
+          <div className="checkout-main-col">
+            <div style={{ background: 'var(--white)', borderRadius: '24px', padding: '20px', border: '1.5px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+              <h3 style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--dark)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.02em' }}>Shipping Information</h3>
+              <div className="input-group">
+                <label>Receiver Full Name</label>
+                <input
+                  className="input-field" type="text" placeholder="e.g. Prajwal Shrestha"
+                  value={form.customerName} onChange={e => setForm({ ...form, customerName: e.target.value })}
+                />
+              </div>
+              <div className="input-group">
+                <label>Phone Number</label>
+                <input
+                  className="input-field" type="tel" placeholder="e.g. 9842195574"
+                  value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
+                />
+              </div>
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label>Delivery Address</label>
+                <input
+                  className="input-field" type="text" placeholder="e.g. Hasanpur, Ward-9, Dhangadhi"
+                  value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* Mobile-only Order blocks */}
+            <div className="mobile-order-block" style={{ marginTop: '16px' }}>
+              <div style={{
+                background: 'var(--white)', borderRadius: '24px', padding: '16px',
+                boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)',
+                textAlign: 'center'
+              }}>
+                <h3 style={{ fontSize: '0.85rem', fontWeight: '750', color: 'var(--dark)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.02em' }}>Scan & Pay</h3>
+                <p style={{ fontSize: '0.68rem', color: 'var(--mid)', marginBottom: '12px' }}>Click QR image to enlarge</p>
+                <div onClick={() => setQrOpen(true)} style={{ width: '130px', height: '130px', margin: '0 auto 10px', borderRadius: '16px', overflow: 'hidden', border: '1.5px solid var(--border)', cursor: 'pointer' }}>
+                  <img src="/qr.png" alt="Payment QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+                <div style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--primary)' }}>Rs. {grandTotal.toLocaleString()}</div>
+              </div>
+
+              <div style={{ background: 'var(--white)', borderRadius: '24px', padding: '16px', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)' }}>
+                <h3 style={{ fontSize: '0.85rem', fontWeight: '750', color: 'var(--dark)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.02em' }}>Verify Transaction</h3>
+                <label style={{ display: 'block', background: '#F8F9FB', border: '2px dashed var(--border)', borderRadius: '16px', padding: '20px 10px', textAlign: 'center', cursor: 'pointer' }}>
+                  <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
+                  {preview ? <img src={preview} alt="preview" style={{ maxHeight: '110px', borderRadius: '10px', objectFit: 'contain', margin: '0 auto' }} />
+                    : <div><div style={{ fontSize: '1.4rem', color: 'var(--light)', marginBottom: '4px' }}>📸</div><div style={{ fontSize: '0.72rem', color: 'var(--mid)' }}>Upload Transfer Screenshot</div></div>}
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+          {/* RIGHT COLUMN: PC SUMMARY & ACTIONS */}
+          <aside className="checkout-side-col">
+            <div style={{ background: 'var(--white)', borderRadius: '24px', padding: '20px', border: '1.5px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--dark)', marginBottom: '14px' }}>Order Summary</h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', color: 'var(--mid)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Item Price</span>
+                  <span style={{ color: 'var(--dark)', fontWeight: '600' }}>Rs. {product.price.toLocaleString()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Delivery Fee</span>
+                  <span style={{ color: 'var(--dark)', fontWeight: '600' }}>{deliveryFee === 0 ? 'FREE' : `Rs. ${deliveryFee}`}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem', color: 'var(--dark)', fontWeight: '800', marginTop: '6px', paddingTop: '8px', borderTop: '1px dashed var(--border)' }}>
+                  <span>Grand Total</span>
+                  <span style={{ color: 'var(--primary)' }}>Rs. {grandTotal.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* PC-only Step 2 Blocks */}
+            <div className="desktop-order-block" style={{ width: '100%' }}>
+              
+              <div style={{ background: 'var(--white)', borderRadius: '24px', padding: '20px', border: '1.5px solid var(--border)', boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--dark)', marginBottom: '12px' }}>Scan & Pay Grand Total</h3>
+                <div onClick={() => setQrOpen(true)} style={{ width: '140px', height: '140px', margin: '0 auto 10px', borderRadius: '16px', overflow: 'hidden', border: '1.5px solid var(--border)', cursor: 'pointer' }}>
+                  <img src="/qr.png" alt="Payment QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+                <div style={{ fontSize: '1.05rem', fontWeight: '850', color: 'var(--primary)' }}>Rs. {grandTotal.toLocaleString()}</div>
+                <p style={{ fontSize: '0.72rem', color: 'var(--light)', marginTop: '2px' }}>eSewa · Khalti · Banking Transfer</p>
+              </div>
+
+              <div style={{ background: 'var(--white)', borderRadius: '24px', padding: '20px', border: '1.5px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--dark)', marginBottom: '12px' }}>Upload Payment Proof</h3>
+                <label style={{ display: 'block', background: '#F8F9FB', border: '2px dashed var(--border)', borderRadius: '16px', padding: '20px 10px', textAlign: 'center', cursor: 'pointer' }}>
+                  <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
+                  {preview ? <img src={preview} alt="preview" style={{ maxHeight: '110px', borderRadius: '10px', objectFit: 'contain', margin: '0 auto' }} />
+                    : <div><div style={{ fontSize: '1.4rem', color: 'var(--light)', marginBottom: '4px' }}>📸</div><div style={{ fontSize: '0.72rem', color: 'var(--mid)' }}>Click to upload screenshot</div></div>}
+                </label>
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="primary-btn"
+                  style={{ height: '44px', marginTop: '16px', background: loading ? 'var(--light)' : 'var(--primary)' }}
+                >
+                  {loading ? 'Processing Order...' : 'Confirm Payment & Order'}
+                </button>
+              </div>
+
+            </div>
+          </aside>
+
+        </div>
+
+      </div>
+
+      {/* Mobile-only bottom floating bar */}
+      <div className="order-floating-bar">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.75rem', color: 'var(--mid)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Item Price</span>
+            <span style={{ color: 'var(--dark)', fontWeight: '600' }}>Rs. {product.price.toLocaleString()}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Delivery Fee</span>
+            <span style={{ color: 'var(--dark)', fontWeight: '600' }}>{deliveryFee === 0 ? 'FREE' : `Rs. ${deliveryFee}`}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--dark)', fontWeight: '750', marginTop: '2px', paddingTop: '4px', borderTop: '1px dashed var(--border)' }}>
+            <span>Grand Total</span>
+            <span style={{ color: 'var(--primary)' }}>Rs. {grandTotal.toLocaleString()}</span>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="primary-btn"
+          style={{ height: '46px', background: loading ? 'var(--light)' : 'var(--primary)' }}
+        >
+          {loading ? 'Processing Order...' : 'Confirm Payment & Order'}
         </button>
       </div>
+
     </div>
   )
 }

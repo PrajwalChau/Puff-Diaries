@@ -1,22 +1,11 @@
 const router = require('express').Router()
 const Order = require('../models/Order')
 const auth = require('../middleware/auth')
+const supabase = require('../config/supabase')
 const multer = require('multer')
-const cloudinary = require('cloudinary').v2
 
 // ✅ Memory storage — Vercel filesystem is read-only
 const upload = multer({ storage: multer.memoryStorage() })
-
-function uploadToCloudinary(buffer) {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader
-      .upload_stream({ resource_type: 'image', folder: 'puffdiaries' }, (error, result) => {
-        if (error) reject(error)
-        else resolve(result)
-      })
-      .end(buffer)
-  })
-}
 
 // public: track by phone or email
 router.get('/track', async (req, res) => {
@@ -50,8 +39,23 @@ router.post('/', auth, upload.single('screenshot'), async (req, res) => {
   try {
     let screenshotUrl = ''
     if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer)
-      screenshotUrl = result.secure_url
+      const fileExt = req.file.originalname.split('.').pop()
+      const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}.${fileExt}`
+      
+      const { data, error } = await supabase.storage
+        .from('receipts')
+        .upload(fileName, req.file.buffer, {
+          contentType: req.file.mimetype,
+          upsert: false
+        })
+        
+      if (error) {
+        console.error('Supabase upload error:', error)
+        return res.status(500).json({ message: 'Error uploading receipt to storage', error: error.message })
+      }
+      
+      const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(fileName)
+      screenshotUrl = publicUrlData.publicUrl
     }
     const order = await Order.create({
       ...req.body,
@@ -60,7 +64,8 @@ router.post('/', auth, upload.single('screenshot'), async (req, res) => {
     })
     res.json(order)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    console.error('Order creation error:', err)
+    res.status(500).json({ message: 'Error creating order', error: err.message })
   }
 })
 
